@@ -19,8 +19,11 @@
 Настройка: скопируйте .env.example в .env, впишите DISPATCHER_BOT_TOKEN
 (токен НОВОГО бота, созданного через @BotFather специально для этого — не
 токен рабочих ботов) и OWNER_TELEGRAM_ID (ваш личный Telegram ID, чтобы
-никто другой не мог им воспользоваться). Данные о целевых ботах Salebot
-берутся из clients.json (alias, bot_id, api_key) — см. clients.example.json.
+никто другой не мог им воспользоваться). Данные о целевых аудиториях Salebot
+берутся из clients.json (alias, group_id, api_key) — см. clients.example.json.
+Разные боты одного проекта различаются по ID списка (group_id), не по
+bot_id — так настроен проект в Salebot: каждый бот пишет своих подписчиков
+в свой отдельный список.
 """
 import asyncio
 import logging
@@ -121,7 +124,7 @@ def format_preview(name: str, cfg: dict, b: PendingBroadcast) -> str:
     username = cfg.get("telegram_username")
     lines = [
         f"Получатель: {name}" + (f" ({username})" if username else ""),
-        f"bot_id: {cfg['bot_id']}",
+        f"Список (group_id): {b.group_id or '(не указан!)'}",
         f"Время отправки: {b.send_time or 'сразу'}",
     ]
     if b.button_text:
@@ -226,7 +229,7 @@ async def handle_instruction(message: Message) -> None:
     broadcast = PendingBroadcast(
         client_name=name,
         text=pending.text,
-        group_id=cfg.get("default_group_id"),
+        group_id=cfg.get("group_id"),
         send_time=send_time,
         button_text=button_text,
         button_url=button_url,
@@ -257,8 +260,8 @@ async def handle_confirm(callback: CallbackQuery) -> None:
             {"line": 0, "index_in_line": 0, "text": broadcast.button_text,
              "type": "inline", "url": broadcast.button_url}
         ]
-    payload = build_payload(cfg["bot_id"], broadcast.text, broadcast.group_id,
-                             broadcast.send_time, None, extra)
+    payload = build_payload(broadcast.text, broadcast.group_id, broadcast.send_time,
+                             extra=extra)
     result = send_broadcast(cfg["api_key"], payload)
     await callback.message.edit_text(
         callback.message.text + f"\n\n✅ Отправлено. Ответ Salebot: {result}"
