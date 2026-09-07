@@ -1,12 +1,14 @@
 {
-  "Название клиента": {
-    "bot_id": "ID бота в Salebot (видно в настройках проекта)",
-    "api_key": "API-ключ проекта клиента (Salebot -> настройки проекта -> API)",
+  "Расцветай — Бот 1": {
+    "bot_id": "ID первого бота (Salebot -> проект Расцветай -> Каналы)",
+    "api_key": "API-ключ проекта (Salebot -> настройки проекта -> API)",
+    "telegram_username": "@username_бота_1",
     "default_group_id": null
   },
-  "Другой клиент": {
-    "bot_id": "...",
-    "api_key": "...",
-    "default_group_id": "ID списка/аудитории по умолчанию, если есть"
+  "Расцветай — Бот 2": {
+    "bot_id": "ID второго бота (Salebot -> проект Расцветай -> Каналы)",
+    "api_key": "тот же или другой API-ключ — проверьте в Salebot",
+    "telegram_username": "@username_бота_2",
+    "default_group_id": null
   }
 }

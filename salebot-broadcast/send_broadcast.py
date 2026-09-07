@@ -37,6 +37,17 @@ def load_clients() -> dict:
     return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
 
 
+def print_clients_list(clients: dict) -> None:
+    if not clients:
+        print("В clients.json пока ничего не настроено.")
+        return
+    print("Настроенные получатели рассылок:")
+    for name, cfg in clients.items():
+        username = cfg.get("telegram_username")
+        username_part = f" ({username})" if username else ""
+        print(f"  - {name}{username_part}  [bot_id: {cfg.get('bot_id')}]")
+
+
 def parse_extra_params(pairs: list[str]) -> dict:
     extra = {}
     for pair in pairs:
@@ -78,8 +89,7 @@ def send_broadcast(api_key: str, payload: dict) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Отправить рассылку клиента через Salebot API")
-    parser.add_argument("--client", required=True, help="Имя клиента как в clients.json")
-    parser.add_argument("--message", required=True, help="Текст рассылки")
+    parser.add_argument("--client", default=None, help="Имя клиента как в clients.json")
     parser.add_argument("--group-id", default=None,
                          help="ID списка/аудитории (по умолчанию — default_group_id из clients.json)")
     parser.add_argument("--send-time", default=None, help="Дата и время отправки 'YYYY-MM-DD HH:MM:SS'")
@@ -88,21 +98,35 @@ def main() -> None:
                          help="Доп. параметр key=value из документации Salebot")
     parser.add_argument("--dry-run", action="store_true", help="Показать, что будет отправлено, но не отправлять")
     parser.add_argument("--yes", action="store_true", help="Не спрашивать подтверждение перед отправкой")
+    parser.add_argument("--list", action="store_true",
+                         help="Показать всех настроенных получателей из clients.json и выйти")
+    parser.add_argument("--message", default=None, help="Текст рассылки")
     args = parser.parse_args()
 
     clients = load_clients()
+
+    if args.list:
+        print_clients_list(clients)
+        return
+
+    if not args.client or not args.message:
+        sys.exit("Нужны --client и --message (или используйте --list, чтобы увидеть доступных получателей).")
+
     client = clients.get(args.client)
     if not client:
-        sys.exit(f"Клиент '{args.client}' не найден в clients.json. Доступные: {', '.join(clients) or '(пусто)'}")
+        print_clients_list(clients)
+        sys.exit(f"\nКлиент '{args.client}' не найден в clients.json — см. список выше.")
 
     group_id = args.group_id or client.get("default_group_id")
     extra = parse_extra_params(args.param)
     payload = build_payload(client["bot_id"], args.message, group_id, args.send_time, args.time_shift, extra)
 
-    print(f"Клиент: {args.client}")
+    username = client.get("telegram_username")
+    print(f"Получатель: {args.client}" + (f" ({username})" if username else ""))
     print(f"bot_id: {client['bot_id']}")
     print(f"Аудитория (group_id): {group_id or '(не указана — уйдёт по умолчанию согласно настройкам Salebot)'}")
     print(f"Текст:\n{args.message}\n")
+    print("⚠️  Проверьте, что получатель и @username выше — тот самый бот, куда должна уйти именно эта рассылка.")
 
     if args.dry_run:
         print("(dry-run, запрос не отправлен)")
