@@ -1,11 +1,13 @@
 {
   "Расцветай — Бот 1": {
+    "alias": "1",
     "bot_id": "ID первого бота (Salebot -> проект Расцветай -> Каналы)",
     "api_key": "API-ключ проекта (Salebot -> настройки проекта -> API)",
     "telegram_username": "@username_бота_1",
     "default_group_id": null
   },
   "Расцветай — Бот 2": {
+    "alias": "2",
     "bot_id": "ID второго бота (Salebot -> проект Расцветай -> Каналы)",
     "api_key": "тот же или другой API-ключ — проверьте в Salebot",
     "telegram_username": "@username_бота_2",
